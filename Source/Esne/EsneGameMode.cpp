@@ -2,6 +2,7 @@
 
 #include "EsneGameMode.h"
 #include "EsneCharacter.h"
+#include "EsneHUD.h"
 #include "UObject/ConstructorHelpers.h"
 
 AEsneGameMode::AEsneGameMode()
@@ -12,4 +13,10 @@ AEsneGameMode::AEsneGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
+
+    static ConstructorHelpers::FClassFinder<AEsneHUD> HudBPClass(TEXT("/Game/ThirdPerson/Blueprints/EsneHUD_BP"));
+    if (HudBPClass.Class != NULL)
+    {
+        HUDClass = HudBPClass.Class;
+    }
 }
