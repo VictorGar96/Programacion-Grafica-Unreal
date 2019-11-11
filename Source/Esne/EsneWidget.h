@@ -19,4 +19,6 @@ public:
     // Native on key down
     FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
+    UFUNCTION(BlueprintImplementableEvent)
+    void SetOverlappingElemsNumber(int Elems);
 };

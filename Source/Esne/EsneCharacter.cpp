@@ -7,6 +7,11 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+
+#include "EsneWidget.h"
+#include "EsneHUD.h"
+#include "Kismet/GameplayStatics.h"
+
 #include "GameFramework/SpringArmComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,6 +79,50 @@ void AEsneCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AEsneCharacter::OnResetVR);
+}
+
+void AEsneCharacter::IncrementCount()
+{
+    count++;
+    UpdateWidget();
+}
+
+void AEsneCharacter::DecrementCount()
+{
+    count--;
+    UpdateWidget();
+}
+
+UEsneWidget* AEsneCharacter::GetEsneWidget(AEsneHUD* HUD) const
+{
+
+    TArray<UUserWidget*> widgets = HUD->GetWidgets();
+
+    for (UUserWidget* p_Widget : widgets)
+    {
+        if (UEsneWidget* esneWidget = Cast<UEsneWidget>(p_Widget))
+        {
+            return esneWidget;
+        }   
+    }
+
+    return nullptr;
+}
+
+void AEsneCharacter::UpdateWidget()
+{
+    if (APlayerController* playerController = Cast<APlayerController>(GetController()))
+    {
+        if (AEsneHUD* HUD = Cast<AEsneHUD>(playerController->GetHUD()))
+        {
+            UEsneWidget* pEsneWidget =  GetEsneWidget(HUD);
+
+            if (pEsneWidget != nullptr)
+            {
+                pEsneWidget->SetOverlappingElemsNumber(count);
+            }
+        }
+    }
 }
 
 

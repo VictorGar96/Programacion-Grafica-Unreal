@@ -38,6 +38,14 @@ public:
     UFUNCTION(BlueprintImplementableEvent)
     void CppMethod();
 
+    /** Begin overlap listener */
+    UFUNCTION()
+        void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+    /** End overlap listener */
+    UFUNCTION()
+        void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 protected:
 
 	/** Sphere component */
@@ -46,4 +54,5 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FColor DebugDrawColor;
+
 };

@@ -22,6 +22,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TArray<TSubclassOf<UUserWidget>> Widgets;
 
+    UFUNCTION()
+    TArray<UUserWidget*> GetWidgets() const;
+
 private:
 
     // Widget instances

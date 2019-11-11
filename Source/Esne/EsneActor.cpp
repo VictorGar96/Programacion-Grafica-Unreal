@@ -2,6 +2,7 @@
 
 
 #include "EsneActor.h"
+#include "EsneCharacter.h"
 #include "Components/SphereComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogEsneActor, Display, All);
@@ -20,13 +21,9 @@ void AEsneActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Reference component created from BP
-	//
-	//UActorComponent* pSphereComp = GetComponentByClass(USphereComponent::StaticClass());	
-	//if (pSphereComp != nullptr)
-	//{
-	//	SphereComponent = Cast<USphereComponent>(pSphereComp);
-	//}
+    SphereComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &AEsneActor::OnBeginOverlap);
+    SphereComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &AEsneActor::OnEndOverlap);
+
 }
 
 // Called every frame
@@ -48,6 +45,23 @@ void AEsneActor::FromBPToCpp()
 		SphereComponent->SetSphereRadius(SphereComponent->GetScaledSphereRadius() * 2.0f);
 	}
 }
+
+void AEsneActor::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (AEsneCharacter* esneCharacter = Cast<AEsneCharacter>(OtherActor))
+    {
+        esneCharacter->IncrementCount();
+    }
+}
+
+void AEsneActor::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+    if (AEsneCharacter* esneCharacter = Cast<AEsneCharacter>(OtherActor))
+    {
+        esneCharacter->DecrementCount();
+    }
+}
+
 
 
 

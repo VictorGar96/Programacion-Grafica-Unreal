@@ -4,6 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
+#include "EsneWidget.h"
+#include "EsneHUD.h"
+#include "Kismet/GameplayStatics.h"
+
 #include "EsneCharacter.generated.h"
 
 UCLASS(config=Game)
@@ -68,5 +73,28 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+public:
+
+    UFUNCTION()
+    void IncrementCount();
+
+    UFUNCTION()
+    void DecrementCount();
+
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE int32 GetNumOverlaps() { return count; }
+
+
+protected:
+
+    class UEsneWidget* GetEsneWidget(AEsneHUD* HUD) const;
+   
+    void UpdateWidget();
+
+private:
+
+    UPROPERTY(Transient)
+    int32 count = 0;
 };
 
