@@ -44,6 +44,13 @@ AEsneCharacter::AEsneCharacter()
 	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
+    interactorComponent = CreateDefaultSubobject<UInteractorComponent>(TEXT("InteractorComponent"));
+    interactorComponent->SetupAttachment(RootComponent);
+    interactorComponent->SetSphereRadius(interactorRadius);
+
+    // Collision
+    interactorComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
@@ -56,6 +63,11 @@ AEsneCharacter::AEsneCharacter()
 void AEsneCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (InputComponent)
+    {
+        InputComponent->BindAction("Interact", EInputEvent::IE_Pressed, this, &AEsneCharacter::InteractPressed);
+    }
 
     UCapsuleComponent* capsule = GetCapsuleComponent();
     if (capsule != nullptr)
@@ -164,6 +176,20 @@ void AEsneCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Locatio
 void AEsneCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
 		StopJumping();
+}
+
+void AEsneCharacter::InteractPressed()
+{
+    UE_LOG(LogTemp, Warning, TEXT("InteractPressed"));
+
+    if (interactorComponent != nullptr)
+    {
+        AActor* actor = interactorComponent->GetInteractorCandidate();
+        if (AEsneActor* esneActor = Cast<AEsneActor>(actor))
+        {
+            esneActor->OnInteract();
+        }
+    }
 }
 
 void AEsneCharacter::TurnAtRate(float Rate)

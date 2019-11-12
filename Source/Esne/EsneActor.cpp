@@ -14,6 +14,8 @@ AEsneActor::AEsneActor()
 	PrimaryActorTick.bCanEverTick = true;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CodeSphereComp"));
+    interactiveComponent = CreateDefaultSubobject<UInteractiveComponent>(TEXT("InteractiveComponent"));
+    interactiveComponent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -30,7 +32,7 @@ void AEsneActor::BeginPlay()
 void AEsneActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-    UE_LOG(LogEsneActor, Display, TEXT("Hello"));
+    //UE_LOG(LogEsneActor, Display, TEXT("Hello"));
     CppMethod();
 
     // Broadcast the delegate, send parameter

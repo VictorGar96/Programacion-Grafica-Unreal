@@ -8,7 +8,7 @@
 #include "EsneWidget.h"
 #include "EsneHUD.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "InteractorComponent.h"
 #include "EsneCharacter.generated.h"
 
 UCLASS(config=Game)
@@ -35,6 +35,10 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
+
+    class UInteractorComponent* interactorComponent;
+
+  
 
 protected:
 
@@ -65,6 +69,9 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
+    // Input 
+    void InteractPressed();
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -94,6 +101,9 @@ public:
     UFUNCTION(BlueprintCallable)
     FORCEINLINE bool IsCharacterInitialized() const { return isInitialize; }
 
+    /** Interaction radius */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Interaction)
+    float interactorRadius = 200.0f;
 protected:
 
     class UEsneWidget* GetEsneWidget(AEsneHUD* HUD) const;
@@ -107,5 +117,7 @@ private:
 
     UPROPERTY(Transient)
     bool isInitialize = false;
+
+    
 };
 

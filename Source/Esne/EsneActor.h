@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 //#include "Components/SphereComponent.h"
+#include "InteractiveComponent.h"
 #include "EsneActor.generated.h"
 
 UCLASS()
@@ -21,6 +22,12 @@ public:
 public:	
 	// Sets default values for this actor's properties
 	AEsneActor();
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void OnInteract();
+
+    UPROPERTY(EditAnywhere)
+    class UInteractiveComponent* interactiveComponent;
 
 protected:
 	// Called when the game starts or when spawned
