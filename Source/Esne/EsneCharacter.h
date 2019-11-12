@@ -26,6 +26,8 @@ class AEsneCharacter : public ACharacter
 public:
 	AEsneCharacter();
 
+    virtual void BeginPlay() override;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -75,6 +77,10 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 public:
+    
+    /** Character initialized delegate */
+    DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterInitialized);
+    FCharacterInitialized OnCharacterInitialized;
 
     UFUNCTION()
     void IncrementCount();
@@ -85,6 +91,8 @@ public:
     UFUNCTION(BlueprintCallable)
     FORCEINLINE int32 GetNumOverlaps() { return count; }
 
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE bool IsCharacterInitialized() const { return isInitialize; }
 
 protected:
 
@@ -96,5 +104,8 @@ private:
 
     UPROPERTY(Transient)
     int32 count = 0;
+
+    UPROPERTY(Transient)
+    bool isInitialize = false;
 };
 

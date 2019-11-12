@@ -9,6 +9,7 @@
 #include "GameFramework/Controller.h"
 
 #include "EsneWidget.h"
+#include "EsneActor.h"
 #include "EsneHUD.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -50,6 +51,30 @@ AEsneCharacter::AEsneCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+}
+
+void AEsneCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+
+    UCapsuleComponent* capsule = GetCapsuleComponent();
+    if (capsule != nullptr)
+    {
+        TSet<AActor*> OverlappingActors;
+        capsule->GetOverlappingActors(OverlappingActors, nullptr);
+
+        for (AActor* actor : OverlappingActors)
+        {
+            if (AEsneActor* esneActor = Cast<AEsneActor>(actor))
+            {
+                // Found esne actor taht overlaps with player´s capsule
+                IncrementCount();
+            }
+        }
+    }
+
+    isInitialize = true;
+    OnCharacterInitialized.Broadcast();
 }
 
 //////////////////////////////////////////////////////////////////////////
