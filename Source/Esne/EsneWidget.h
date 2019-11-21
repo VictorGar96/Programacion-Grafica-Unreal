@@ -13,12 +13,12 @@ UCLASS()
 class ESNE_API UEsneWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
 public:
 
-    // Native on key down
-    FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+	// ...
+	FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-    void SetOverlappingElemsNumber(int Elems);
+	/** Set overlapping elems number */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetOverlappingElemsNumber(int nElems);
 };

@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 //#include "Components/SphereComponent.h"
-#include "InteractiveComponent.h"
 #include "EsneActor.generated.h"
 
 UCLASS()
@@ -19,19 +18,23 @@ public:
     UPROPERTY(BlueprintAssignable)
     FEsneDelegate OnEsneTick;
 
+	/** Interactive component */
+	UPROPERTY(EditAnywhere)
+	class UInteractiveComponent* InteractiveComponent;
+
 public:	
 	// Sets default values for this actor's properties
 	AEsneActor();
 
-    UFUNCTION(BlueprintImplementableEvent)
-    void OnInteract();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnInteract();
 
-    UPROPERTY(EditAnywhere)
-    class UInteractiveComponent* interactiveComponent;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
 
 public:	
 	// Called every frame
@@ -45,13 +48,13 @@ public:
     UFUNCTION(BlueprintImplementableEvent)
     void CppMethod();
 
-    /** Begin overlap listener */
-    UFUNCTION()
-        void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	/** Begin overlap listener */
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-    /** End overlap listener */
-    UFUNCTION()
-        void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	/** End overlap listener */
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 protected:
 
@@ -62,4 +65,5 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FColor DebugDrawColor;
 
+	
 };

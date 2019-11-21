@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class ESNE_API UInteractiveComponent : public USphereComponent
 {
 	GENERATED_BODY()

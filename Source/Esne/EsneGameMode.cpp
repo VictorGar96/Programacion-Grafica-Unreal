@@ -1,5 +1,6 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
+#include "EsnePlayerController.h"
 #include "EsneGameMode.h"
 #include "EsneCharacter.h"
 #include "EsneHUD.h"
@@ -14,9 +15,13 @@ AEsneGameMode::AEsneGameMode()
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
 
-    static ConstructorHelpers::FClassFinder<AEsneHUD> HudBPClass(TEXT("/Game/ThirdPerson/Blueprints/EsneHUD_BP"));
-    if (HudBPClass.Class != NULL)
-    {
-        HUDClass = HudBPClass.Class;
-    }
+	// set default hud class
+	static ConstructorHelpers::FClassFinder<AEsneHUD> HudBPClass(TEXT("/Game/ThirdPerson/Blueprints/BP_EsneHUD"));
+	if (HudBPClass.Class != NULL)
+	{
+		HUDClass = HudBPClass.Class;
+	}
+    
+    PlayerControllerClass = AEsnePlayerController::StaticClass();
+    
 }

@@ -8,12 +8,18 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 
-#include "EsneWidget.h"
-#include "EsneActor.h"
-#include "EsneHUD.h"
-#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
 
+//
+#include "EsneWidget.h"
+#include "EsneHUD.h"
+#include "EsneActor.h"
+#include "Kismet/GameplayStatics.h"
+//
 #include "GameFramework/SpringArmComponent.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogEsneCharacter, Display, All);
+
 
 //////////////////////////////////////////////////////////////////////////
 // AEsneCharacter
@@ -44,12 +50,19 @@ AEsneCharacter::AEsneCharacter()
 	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
-    interactorComponent = CreateDefaultSubobject<UInteractorComponent>(TEXT("InteractorComponent"));
-    interactorComponent->SetupAttachment(RootComponent);
-    interactorComponent->SetSphereRadius(interactorRadius);
+	m_pInteractorComponent = CreateDefaultSubobject<UInteractorComponent>(TEXT("Interactor"));
+	m_pInteractorComponent->SetupAttachment(RootComponent);
+	m_pInteractorComponent->SetSphereRadius(InteractionRadius);
 
-    // Collision
-    interactorComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	// Collision settings
+	//
+
+	m_pInteractorComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+
+	//m_pInteractorComponent->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	//m_pInteractorComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	//m_pInteractorComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -58,35 +71,53 @@ AEsneCharacter::AEsneCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+
+    
 }
 
 void AEsneCharacter::BeginPlay()
 {
-    Super::BeginPlay();
+	Super::BeginPlay();
 
-    if (InputComponent)
-    {
-        InputComponent->BindAction("Interact", EInputEvent::IE_Pressed, this, &AEsneCharacter::InteractPressed);
-    }
+	// Bind to player input
+	//
+	if (InputComponent)
+	{		
+		InputComponent->BindAction("Interact", EInputEvent::IE_Pressed, this, &AEsneCharacter::InteractPressed);
+	}
 
-    UCapsuleComponent* capsule = GetCapsuleComponent();
-    if (capsule != nullptr)
-    {
-        TSet<AActor*> OverlappingActors;
-        capsule->GetOverlappingActors(OverlappingActors, nullptr);
+	// Find all overlapping spheres
+	//
+	UCapsuleComponent* pCapsule = GetCapsuleComponent();
+	if (pCapsule != nullptr)
+	{
+		TSet<AActor*> OverlappingActors;
+		pCapsule->GetOverlappingActors(OverlappingActors, nullptr);
 
-        for (AActor* actor : OverlappingActors)
-        {
-            if (AEsneActor* esneActor = Cast<AEsneActor>(actor))
-            {
-                // Found esne actor taht overlaps with player´s capsule
-                IncrementCount();
-            }
-        }
-    }
+		for (AActor* pActor : OverlappingActors)
+		{
+			if (AEsneActor * pEsneActor = Cast<AEsneActor>(pActor))
+			{
+				// Found esne actor that overlaps with player's capsule
+				IncrementOverlaps();
+			}
+		}
+	}
 
-    isInitialize = true;
-    OnCharacterInitialized.Broadcast();
+	m_bInitialized = true;
+	OnCharacterInitialized.Broadcast();
+}
+
+void AEsneCharacter::IncrementOverlaps()
+{
+	m_NumOverlaps++;
+	UpdateWidgetInfo();
+}
+
+void AEsneCharacter::DecrementOverlaps()
+{
+	m_NumOverlaps--;
+	UpdateWidgetInfo();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,48 +149,38 @@ void AEsneCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AEsneCharacter::OnResetVR);
 }
 
-void AEsneCharacter::IncrementCount()
+UEsneWidget* AEsneCharacter::GetEsneWidget(AEsneHUD* pEsneHUD) const
 {
-    count++;
-    UpdateWidget();
-}
+	// boilerplate code
+	//
+	 TArray<UUserWidget*> pWidgets = pEsneHUD->GetWidgets();
 
-void AEsneCharacter::DecrementCount()
-{
-    count--;
-    UpdateWidget();
-}
+	 // Obtain esne widget by predicate using a lambda function
+	 //
+	 UUserWidget** pUserWidget = pWidgets.FindByPredicate([&](UUserWidget* pWidget) 
+		 {
+			 UEsneWidget* pEsneWidget = Cast<UEsneWidget>(pWidget);
+			 return pEsneWidget != nullptr;
+		 });
 
-UEsneWidget* AEsneCharacter::GetEsneWidget(AEsneHUD* HUD) const
-{
+	 if (pUserWidget != nullptr)
+	 {
+		 return (UEsneWidget*) *pUserWidget;
+	 }
 
-    TArray<UUserWidget*> widgets = HUD->GetWidgets();
+	 
+	 // Simple way of obtaining the esne widget
+	 //
+	 //for (UUserWidget* pWidget : pWidgets)
+	 //{
+		// UEsneWidget* pEsneWidget = Cast<UEsneWidget>(pWidget);
+		// if (pEsneWidget != nullptr)
+		// {
+		//	 return pEsneWidget;
+		// }
+	 //}
 
-    for (UUserWidget* p_Widget : widgets)
-    {
-        if (UEsneWidget* esneWidget = Cast<UEsneWidget>(p_Widget))
-        {
-            return esneWidget;
-        }   
-    }
-
-    return nullptr;
-}
-
-void AEsneCharacter::UpdateWidget()
-{
-    if (APlayerController* playerController = Cast<APlayerController>(GetController()))
-    {
-        if (AEsneHUD* HUD = Cast<AEsneHUD>(playerController->GetHUD()))
-        {
-            UEsneWidget* pEsneWidget =  GetEsneWidget(HUD);
-
-            if (pEsneWidget != nullptr)
-            {
-                pEsneWidget->SetOverlappingElemsNumber(count);
-            }
-        }
-    }
+	 return nullptr;
 }
 
 
@@ -178,19 +199,45 @@ void AEsneCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Locatio
 		StopJumping();
 }
 
+void AEsneCharacter::UpdateWidgetInfo() const
+{
+	// Obtain EsneWidget object
+	// Call SetOverlappingElemsNumber
+
+	if (APlayerController * pController = Cast<APlayerController>(GetController()))
+	{
+		if (AEsneHUD * pEsneHUD = Cast<AEsneHUD>(pController->GetHUD()))
+		{
+			UEsneWidget* pEsneWidget = GetEsneWidget(pEsneHUD);
+			if (pEsneWidget != nullptr)
+			{
+				pEsneWidget->SetOverlappingElemsNumber(m_NumOverlaps);
+			}
+		}
+	}
+
+	// Alternative way of obtaining player controller
+	//
+	//if (APlayerController * pController = UGameplayStatics::GetPlayerController(this, 0))
+	//{
+
+	//}
+}
+
 void AEsneCharacter::InteractPressed()
 {
-    UE_LOG(LogTemp, Warning, TEXT("InteractPressed"));
+	UE_LOG(LogEsneCharacter, Display, TEXT("Interact pressed"));
 
-    if (interactorComponent != nullptr)
-    {
-        AActor* actor = interactorComponent->GetInteractorCandidate();
-        if (AEsneActor* esneActor = Cast<AEsneActor>(actor))
-        {
-            esneActor->OnInteract();
-        }
-    }
+	if (m_pInteractorComponent != nullptr)
+	{
+		AActor* pActor = m_pInteractorComponent->GetInteractionCandidate();
+		if (AEsneActor * pEsneActor = Cast<AEsneActor>(pActor))
+		{
+			pEsneActor->OnInteract();
+		}
+	}
 }
+
 
 void AEsneCharacter::TurnAtRate(float Rate)
 {

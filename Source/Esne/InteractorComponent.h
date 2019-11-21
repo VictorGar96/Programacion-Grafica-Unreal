@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveComponent.h"
 #include "Components/SphereComponent.h"
+#include "InteractiveComponent.h"
 #include "InteractorComponent.generated.h"
 
 /**
@@ -14,30 +14,32 @@ UCLASS()
 class ESNE_API UInteractorComponent : public USphereComponent
 {
 	GENERATED_BODY()
-	
-public:
 
-    UInteractorComponent();
+public: 
 
-    virtual void BeginPlay() override;
+	UInteractorComponent();
 
-    /** Begin overlap listener */
-    UFUNCTION()
-    void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	/** Begin play */
+	void BeginPlay() override;
 
-    /** End overlap listener */
-    UFUNCTION()
-    void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	/** Begin overlap listener */
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	/** End overlap listener */
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-    AActor* GetInteractorCandidate() const;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+
+	AActor* GetInteractionCandidate() const;
 
 protected:
 
-    UPROPERTY(Transient)
-    TArray<UInteractiveComponent*> interactiveInRange;
-    
-    UPROPERTY(Transient)
-    UInteractiveComponent* nearestInteractive = nullptr;
+	UPROPERTY(Transient)
+	TArray<UInteractiveComponent*> m_interactivesInRange;
+
+	UPROPERTY(Transient)
+	UInteractiveComponent* m_pNearestInteractive = nullptr;
 };

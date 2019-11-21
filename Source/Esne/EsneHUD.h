@@ -16,19 +16,22 @@ class ESNE_API AEsneHUD : public AHUD
 	GENERATED_BODY()
 
 public:
-    virtual void BeginPlay() override;
 
-    // Widget clases
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TArray<TSubclassOf<UUserWidget>> Widgets;
+	// Widget classes
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TSubclassOf<UUserWidget>> Widgets;
 
-    UFUNCTION()
-    TArray<UUserWidget*> GetWidgets() const;
+public:
+
+	// Begin play
+	virtual void BeginPlay() override;
+
+	/** Get all widgets */
+	TArray<UUserWidget*> GetWidgets() const;
 
 private:
 
-    // Widget instances
-    UPROPERTY(Transient)
-    TArray<UUserWidget*> m_pWidgets;
-
+	// Widget instances
+	UPROPERTY(Transient)
+	TArray<UUserWidget*> m_pWidgets;
 };

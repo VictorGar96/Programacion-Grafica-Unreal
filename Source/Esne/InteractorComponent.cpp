@@ -4,84 +4,77 @@
 #include "InteractorComponent.h"
 #include "DrawDebugHelpers.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogInteractorComponent, Display, All);
+
 UInteractorComponent::UInteractorComponent()
 {
-    PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void UInteractorComponent::BeginPlay()
 {
-    Super::BeginPlay();
-    SetComponentTickEnabled(true);
-    OnComponentBeginOverlap.AddUniqueDynamic(this, &UInteractorComponent::OnBeginOverlap);
-    OnComponentEndOverlap.AddUniqueDynamic(this, &UInteractorComponent::OnEndOverlap);
-
+	Super::BeginPlay();
+	SetComponentTickEnabled(true);
+	OnComponentBeginOverlap.AddUniqueDynamic(this, &UInteractorComponent::OnBeginOverlap);
+	OnComponentEndOverlap.AddUniqueDynamic(this, &UInteractorComponent::OnEndOverlap);
 }
 
 void UInteractorComponent::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    if (UInteractiveComponent* interactive = Cast<UInteractiveComponent>(OtherComp))
-    {
-        interactiveInRange.AddUnique(interactive);
-        UE_LOG(LogTemp, Warning, TEXT("Interactive in range added"));
-    }
+	if (UInteractiveComponent * pInteractive = Cast<UInteractiveComponent>(OtherComp))
+	{
+		m_interactivesInRange.AddUnique(pInteractive);
+		UE_LOG(LogInteractorComponent, Display, TEXT("Elems : %d"), m_interactivesInRange.Num());
+	}
 }
 
 void UInteractorComponent::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-    if (UInteractiveComponent* interactive = Cast<UInteractiveComponent>(OtherComp))
-    {
-        interactiveInRange.Remove(interactive);
-        UE_LOG(LogTemp, Warning, TEXT("Interactive no longer range, removed"));
-    }
+	if (UInteractiveComponent * pInteractive = Cast<UInteractiveComponent>(OtherComp))
+	{
+		m_interactivesInRange.Remove(pInteractive);
+		UE_LOG(LogInteractorComponent, Display, TEXT("Elems : %d"), m_interactivesInRange.Num());
+	}
 }
 
 void UInteractorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    // Find nearest Candidate
+	// Find nearest interactive
+	//
+	if (m_interactivesInRange.Num() > 0)
+	{
+		float minDistance = TNumericLimits<float>::Max();
+		FVector InteractorPosition = GetComponentLocation();
+		for (auto* pInteractive : m_interactivesInRange)
+		{
+			float dist = FVector::Distance(InteractorPosition, pInteractive->GetComponentLocation());
+			if (dist < minDistance)
+			{
+				m_pNearestInteractive = pInteractive;
+				minDistance = dist;
+			}
+		}
+	}
+	else
+	{
+		m_pNearestInteractive = nullptr;
+	}
 
-    if (interactiveInRange.Num() > 0)
-    {
-        float minDistance = TNumericLimits<float>::Max();
-        FVector interactorPosition = GetComponentLocation();
-        for (auto* interactive : interactiveInRange)
-        {
-            float dist = FVector::Distance(interactorPosition, interactive->GetComponentLocation());
-            if (dist < minDistance)
-            {
-                nearestInteractive = interactive;
-                minDistance = dist;
-            }
-        }
-    }
-    else
-    {
-        nearestInteractive = nullptr;
-    }
-    if (nearestInteractive)
-    {
-        DrawDebugSphere
-        (
-            GetWorld(),
-            nearestInteractive->GetComponentLocation(),
-            50.f,
-            10,
-            FColorList::Blue,
-            false,
-            -1.0f,
-            0,
-            5.0f
-        );
-    }
+	if (m_pNearestInteractive)
+	{
+		DrawDebugSphere(GetWorld(), m_pNearestInteractive->GetComponentLocation(), 30.0f, 10, FColorList::DustyRose, false, -1.0f, 0, 5.0f);
+	}
 }
 
-AActor* UInteractorComponent::GetInteractorCandidate() const
+AActor* UInteractorComponent::GetInteractionCandidate() const
 {
-    if (nearestInteractive != nullptr)
-    {
-        return nearestInteractive->GetOwner();
-    }
-    return nullptr;
+	if (m_pNearestInteractive != nullptr)
+	{
+		return m_pNearestInteractive->GetOwner();
+	}
+	return nullptr;
 }
+
+

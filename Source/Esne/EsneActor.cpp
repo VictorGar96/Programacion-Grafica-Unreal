@@ -3,6 +3,7 @@
 
 #include "EsneActor.h"
 #include "EsneCharacter.h"
+#include "InteractiveComponent.h"
 #include "Components/SphereComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogEsneActor, Display, All);
@@ -14,8 +15,8 @@ AEsneActor::AEsneActor()
 	PrimaryActorTick.bCanEverTick = true;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CodeSphereComp"));
-    interactiveComponent = CreateDefaultSubobject<UInteractiveComponent>(TEXT("InteractiveComponent"));
-    interactiveComponent->SetupAttachment(RootComponent);
+	InteractiveComponent = CreateDefaultSubobject<UInteractiveComponent>(TEXT("Interactive"));
+	InteractiveComponent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -23,16 +24,34 @@ void AEsneActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-    SphereComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &AEsneActor::OnBeginOverlap);
-    SphereComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &AEsneActor::OnEndOverlap);
+	// Listen to sphere's begin overlap
+	//
+	SphereComponent->OnComponentBeginOverlap.AddUniqueDynamic(this, &AEsneActor::OnBeginOverlap);
+	SphereComponent->OnComponentEndOverlap.AddUniqueDynamic(this, &AEsneActor::OnEndOverlap);
 
+	// Delayed initialization 
+	//
+	/*
+
+
+	if (character is initialized)
+	{
+		update whatever
+	}
+	else
+	{
+		subscribe to character.OnCharacterInitialized
+			then -> update whatever
+	}
+
+
+	*/
 }
 
 // Called every frame
 void AEsneActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-    //UE_LOG(LogEsneActor, Display, TEXT("Hello"));
     CppMethod();
 
     // Broadcast the delegate, send parameter
@@ -48,22 +67,21 @@ void AEsneActor::FromBPToCpp()
 	}
 }
 
+
 void AEsneActor::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    if (AEsneCharacter* esneCharacter = Cast<AEsneCharacter>(OtherActor))
-    {
-        esneCharacter->IncrementCount();
-    }
+	if (AEsneCharacter* pEsneCharacter = Cast<AEsneCharacter>(OtherActor))
+	{
+		pEsneCharacter->IncrementOverlaps();
+	}
 }
 
 void AEsneActor::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-    if (AEsneCharacter* esneCharacter = Cast<AEsneCharacter>(OtherActor))
-    {
-        esneCharacter->DecrementCount();
-    }
+	if (AEsneCharacter * pEsneCharacter = Cast<AEsneCharacter>(OtherActor))
+	{
+		pEsneCharacter->DecrementOverlaps();
+	}
 }
-
-
 
 
