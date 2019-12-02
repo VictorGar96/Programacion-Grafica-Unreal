@@ -7,6 +7,15 @@
 #include "InteractorComponent.h"
 #include "EsneCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class EJumpingStage : uint8
+{
+    JS_Walking, 
+    JS_JumpIn, 
+    JS_MidAir, 
+    JS_JumpOut,
+};
+
 UCLASS(config=Game)
 class AEsneCharacter : public ACharacter
 {
@@ -19,6 +28,19 @@ class AEsneCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio", meta = (AllowPrivateAccess = "true"))
+    class UAudioComponent* ActionSoundTrack = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio", meta = (AllowPrivateAccess = "true"))
+    class USoundCue* ActionCue = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Action", meta = (AllowPrivateAccess = "true"))
+    class UCurveFloat* JumpInSlomoCurve = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Action", meta = (AllowPrivateAccess = "true"))
+    class UCurveFloat* JumpOutSlomoCurve = nullptr;
+
 
 public:
 
@@ -48,6 +70,9 @@ public:
 	/** Begin play */
 	void BeginPlay() override;
 
+    /** Tick Component */
+    void Tick(float DeltaTime) override;
+
 	/** Increment Overlaps */
 	void IncrementOverlaps();
 
@@ -61,6 +86,15 @@ public:
 	/** Is character initialized */
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsCharacterInitialized() const { return m_bInitialized; }
+
+    UFUNCTION(BlueprintCallable)
+    void OnJumpStarted();
+
+    UFUNCTION(BlueprintCallable)
+    void OnJumpEnded();
+    
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE EJumpingStage GetJumpingState() const { return jumpingStage; }
 
 protected:
 
@@ -97,6 +131,8 @@ protected:
 	/** Interact pressed handler */
 	void InteractPressed();
 
+    void SetActionTimeDilation(float dilationMultiplier);
+
 protected:
 
 	// APawn interface
@@ -126,5 +162,13 @@ protected:
 	/** Interactor component */
 	UPROPERTY(Transient)
 	class UInteractorComponent* m_pInteractorComponent;
+
+    UPROPERTY(Transient)
+    EJumpingStage jumpingStage = EJumpingStage::JS_Walking;
+
+    float jumpTime = 0.f;
+    float jumpIncurveLastKeyFrame = 0.f;
+    float jumpOutcurveLastKeyFrame = 0.f;
+
 };
 

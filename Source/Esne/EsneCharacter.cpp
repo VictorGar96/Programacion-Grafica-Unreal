@@ -11,6 +11,10 @@
 #include "DrawDebugHelpers.h"
 
 //
+#include "Sound/SoundCue.h"
+#include "Components/AudioComponent.h"
+#include "GameFramework/WorldSettings.h"
+
 #include "EsneWidget.h"
 #include "EsneHUD.h"
 #include "EsneActor.h"
@@ -56,6 +60,10 @@ AEsneCharacter::AEsneCharacter()
 
 	// Collision settings
 	//
+
+    ActionSoundTrack = CreateDefaultSubobject<UAudioComponent>(TEXT("Audio Component"));
+    ActionSoundTrack->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+
 
 	m_pInteractorComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
@@ -104,8 +112,63 @@ void AEsneCharacter::BeginPlay()
 		}
 	}
 
+    if (ActionCue != nullptr)
+    {
+        ActionSoundTrack->SetSound(ActionCue);
+        ActionSoundTrack->Play();
+    }
+
+    float minT;
+    if (JumpInSlomoCurve != nullptr)
+    {
+        JumpInSlomoCurve->GetTimeRange(minT, jumpIncurveLastKeyFrame);
+    }
+    if (JumpOutSlomoCurve != nullptr)
+    {
+        JumpOutSlomoCurve->GetTimeRange(minT, jumpOutcurveLastKeyFrame);
+    }
 	m_bInitialized = true;
 	OnCharacterInitialized.Broadcast();
+}
+
+void AEsneCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    switch (jumpingStage)
+    {
+    case EJumpingStage::JS_Walking:
+        break;
+    case EJumpingStage::JS_JumpIn:
+        if (JumpInSlomoCurve != nullptr)
+        {
+            float slomoValue = JumpInSlomoCurve->GetFloatValue(jumpTime);
+            jumpTime += DeltaTime;
+            SetActionTimeDilation(slomoValue);
+            if (jumpTime >= jumpIncurveLastKeyFrame)
+            {
+                jumpingStage = EJumpingStage::JS_MidAir;
+            }
+        }
+        break;
+    case EJumpingStage::JS_MidAir:
+        break;
+    case EJumpingStage::JS_JumpOut:
+        if (JumpOutSlomoCurve != nullptr)
+        {
+            float slomoValue = JumpOutSlomoCurve->GetFloatValue(jumpTime);
+            jumpTime += DeltaTime;
+            SetActionTimeDilation(slomoValue);
+            if (jumpTime >= jumpOutcurveLastKeyFrame)
+            {
+                jumpingStage = EJumpingStage::JS_Walking;
+            }
+        }
+        break;
+
+    default:
+        break;
+    }
 }
 
 void AEsneCharacter::IncrementOverlaps()
@@ -118,6 +181,18 @@ void AEsneCharacter::DecrementOverlaps()
 {
 	m_NumOverlaps--;
 	UpdateWidgetInfo();
+}
+
+void AEsneCharacter::OnJumpStarted()
+{
+    jumpingStage = EJumpingStage::JS_JumpIn;
+    jumpTime = 0.0f;
+}
+
+void AEsneCharacter::OnJumpEnded()
+{
+    jumpingStage = EJumpingStage::JS_JumpOut;
+    jumpTime = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -236,6 +311,15 @@ void AEsneCharacter::InteractPressed()
 			pEsneActor->OnInteract();
 		}
 	}
+}
+
+void AEsneCharacter::SetActionTimeDilation(float dilationMultiplier)
+{
+    GetWorld()->GetWorldSettings()->SetTimeDilation(dilationMultiplier);
+    if (ActionSoundTrack != nullptr)
+    {
+        ActionSoundTrack->SetPitchMultiplier(dilationMultiplier);
+    }
 }
 
 
